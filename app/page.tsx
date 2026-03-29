@@ -80,12 +80,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Scroll to recommendations when they load
-  useEffect(() => {
-    if (phase === "done" && recsRef.current) {
-      recsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [phase]);
+  // No auto-scroll — let users discover content via scroll arrow
 
   const showQuick = quickData && phase !== "idle" && phase !== "loading-quick";
   const showFull = fullData && phase === "done";
@@ -215,11 +210,8 @@ export default function Home() {
 
         {/* Scroll indicator after full load */}
         {showFull && fullData && (
-          <div className="flex flex-col items-center mt-2 mb-2 animate-bounce">
-            <span className="text-slate-500 text-xs mb-1">Scroll for detailed analysis & recommendations</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 4v10m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-slate-500" />
-            </svg>
+          <div className="flex flex-col items-center mt-6 mb-2 animate-bounce">
+            <span className="text-emerald-400/70 text-sm font-medium mb-1">{"\u2193"} Detailed analysis & recommendations below {"\u2193"}</span>
           </div>
         )}
 

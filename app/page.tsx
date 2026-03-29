@@ -200,6 +200,26 @@ export default function Home() {
             )}
 
             {/* Squad summary removed — detailed analysis table below covers this */}
+
+            {/* Scroll indicator while loading */}
+            {isAnalyzing && (
+              <div className="flex flex-col items-center mt-4 animate-bounce">
+                <span className="text-slate-500 text-xs mb-1">Detailed analysis loading below</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 4v10m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-slate-500" />
+                </svg>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Scroll indicator after full load */}
+        {showFull && fullData && (
+          <div className="flex flex-col items-center mt-2 mb-2 animate-bounce">
+            <span className="text-slate-500 text-xs mb-1">Scroll for detailed analysis & recommendations</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4v10m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-slate-500" />
+            </svg>
           </div>
         )}
 
@@ -658,7 +678,7 @@ function LeagueSection({
         League Standings
       </h2>
       <p className="text-xs text-slate-400 mb-4">
-        Click a league to get personalized feedback
+        Tap a league below for attack/defend strategy
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {leagues.map((league) => (
@@ -704,6 +724,10 @@ function LeagueSection({
                 <span className="text-xs text-slate-400">
                   Top {league.percentile}%
                 </span>
+              </div>
+              <div className={`mt-2 text-xs flex items-center gap-1 ${selectedLeague === league.id ? "text-emerald-400" : "text-slate-500"}`}>
+                <span>{selectedLeague === league.id ? "&#9650;" : "&#9654;"}</span>
+                <span>{selectedLeague === league.id ? "Strategy loaded" : "Tap for strategy"}</span>
               </div>
             </div>
 
@@ -1099,7 +1123,8 @@ function RankChart({ history }: { history: RankHistoryEntry[] }) {
           <div
             className="absolute pointer-events-none z-10 bg-slate-800 border border-white/20 rounded-lg px-3 py-2 shadow-xl"
             style={{
-              left: tooltip.x + 12,
+              left: tooltip.x > 600 ? undefined : tooltip.x + 12,
+              right: tooltip.x > 600 ? `calc(100% - ${tooltip.x}px + 12px)` : undefined,
               top: tooltip.y - 10,
               transform: "translateY(-100%)",
             }}

@@ -192,39 +192,48 @@ export async function POST(request: NextRequest) {
     }
 
     // ATTACK: find players user doesn't own that attack rivals also don't own
-    // From all available players with good form, pick ones rivals lack
+    // From quality players, pick ones rivals lack — must be genuinely good picks
     let attackSuggestions: StrategyPlayer[] = [];
     if (shouldAttack) {
       const attackRivalIds = attackRivals.map((r) => r.entry);
-      // Get all good players (high form, available)
       const candidates = bootstrap.elements
         .filter(
           (p) =>
             p.status === "a" &&
             !userPlayerIds.has(p.id) &&
-            parseFloat(p.form) >= 4 &&
-            p.minutes > 200
+            parseFloat(p.form) >= 5 &&
+            p.minutes > 400 &&
+            parseFloat(p.selected_by_percent) >= 3
         )
-        .sort((a, b) => parseFloat(b.form) - parseFloat(a.form))
-        .slice(0, 50); // top 50 by form
+        .map((p) => {
+          const form = parseFloat(p.form);
+          const xgi = parseFloat(p.expected_goal_involvements) || 0;
+          const pts = p.total_points;
+          // Quality score: form + total points weight + xGI
+          const quality = form * 2 + pts / 10 + xgi;
+          return { player: p, quality };
+        })
+        .sort((a, b) => b.quality - a.quality)
+        .slice(0, 30);
 
       attackSuggestions = candidates
-        .map((p) => {
+        .map(({ player: p, quality }) => {
           const info = buildPlayerInfo(p.id)!;
           const rivalsOwning = attackRivalIds.filter((entry) =>
             rivalPicksMap.get(entry)?.has(p.id)
           ).length;
           info.ownedByRivals = rivalsOwning;
           info.totalRivals = attackRivalIds.length;
-          return info;
+          return { ...info, quality, rivalsOwning };
         })
-        // Prefer players NOT owned by rivals, tiebreak by lowest overall ownership
+        // Score: high quality + not owned by rivals = best differential
         .sort((a, b) => {
-          if (a.ownedByRivals !== b.ownedByRivals)
-            return a.ownedByRivals - b.ownedByRivals;
-          return parseFloat(a.selectedPct) - parseFloat(b.selectedPct);
+          const aScore = a.quality * (a.rivalsOwning === 0 ? 1.5 : 1);
+          const bScore = b.quality * (b.rivalsOwning === 0 ? 1.5 : 1);
+          return bScore - aScore;
         })
-        .slice(0, 2);
+        .filter((p) => p.ownedByRivals < p.totalRivals) // at least some differential value
+        .slice(0, 3);
     }
 
     // DEFEND: find players rivals own that user doesn't

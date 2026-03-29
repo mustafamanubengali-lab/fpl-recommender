@@ -726,7 +726,7 @@ function LeagueSection({
                 </span>
               </div>
               <div className={`mt-2 text-xs flex items-center gap-1 ${selectedLeague === league.id ? "text-emerald-400" : "text-slate-500"}`}>
-                <span>{selectedLeague === league.id ? "&#9650;" : "&#9654;"}</span>
+                <span>{selectedLeague === league.id ? "\u25B2" : "\u25B6"}</span>
                 <span>{selectedLeague === league.id ? "Strategy loaded" : "Tap for strategy"}</span>
               </div>
             </div>
@@ -892,7 +892,7 @@ function StrategyCard({
 }
 
 function RankChart({ history }: { history: RankHistoryEntry[] }) {
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; lines: string[] } | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; lines: string[]; containerW: number } | null>(null);
   const chartRef = useRef<SVGSVGElement>(null);
 
   const ranks = history.map((h) => h.overallRank);
@@ -958,7 +958,7 @@ function RankChart({ history }: { history: RankHistoryEntry[] }) {
     const rect = svg.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    setTooltip({ x, y, lines });
+    setTooltip({ x, y, lines, containerW: rect.width });
   }
 
   // Gradient fill under rank line
@@ -1123,8 +1123,8 @@ function RankChart({ history }: { history: RankHistoryEntry[] }) {
           <div
             className="absolute pointer-events-none z-10 bg-slate-800 border border-white/20 rounded-lg px-3 py-2 shadow-xl"
             style={{
-              left: tooltip.x > 600 ? undefined : tooltip.x + 12,
-              right: tooltip.x > 600 ? `calc(100% - ${tooltip.x}px + 12px)` : undefined,
+              left: tooltip.x > tooltip.containerW * 0.7 ? undefined : tooltip.x + 12,
+              right: tooltip.x > tooltip.containerW * 0.7 ? tooltip.containerW - tooltip.x + 12 : undefined,
               top: tooltip.y - 10,
               transform: "translateY(-100%)",
             }}

@@ -1,0 +1,89 @@
+{
+  "feature_names": [
+    "npxg_per90",
+    "xa_per90",
+    "saves_per90",
+    "xgc_per90",
+    "def_contrib_per90",
+    "ict_per90",
+    "minutes_per90",
+    "form",
+    "is_penalty_taker",
+    "avg_fixture_difficulty",
+    "games_played",
+    "injury_risk",
+    "is_home_next",
+    "value",
+    "selected_pct",
+    "bps_per90",
+    "goals_per90",
+    "assists_per90",
+    "clean_sheets_per90",
+    "bonus_per90"
+  ],
+  "positions": {
+    "GK": {
+      "position": "GK",
+      "train_samples": 1949,
+      "val_samples": 1128,
+      "play_auc": 0.8135,
+      "points_mae": 5.69,
+      "top_features": [
+        "xa_per90",
+        "xgc_per90",
+        "selected_pct",
+        "value",
+        "games_played"
+      ]
+    },
+    "DEF": {
+      "position": "DEF",
+      "train_samples": 10993,
+      "val_samples": 5318,
+      "play_auc": 0.7166,
+      "points_mae": 5.87,
+      "top_features": [
+        "value",
+        "selected_pct",
+        "assists_per90",
+        "goals_per90",
+        "xgc_per90"
+      ]
+    },
+    "MID": {
+      "position": "MID",
+      "train_samples": 14291,
+      "val_samples": 7670,
+      "play_auc": 0.7136,
+      "points_mae": 5.78,
+      "top_features": [
+        "form",
+        "selected_pct",
+        "minutes_per90",
+        "value",
+        "is_penalty_taker"
+      ]
+    },
+    "FWD": {
+      "position": "FWD",
+      "train_samples": 3993,
+      "val_samples": 1681,
+      "play_auc": 0.696,
+      "points_mae": 7.28,
+      "top_features": [
+        "form",
+        "value",
+        "selected_pct",
+        "minutes_per90",
+        "games_played"
+      ]
+    }
+  },
+  "train_seasons": [
+    "2022-23",
+    "2023-24"
+  ],
+  "val_season": "2024-25",
+  "rolling_window": 5,
+  "max_lookahead": 5
+}

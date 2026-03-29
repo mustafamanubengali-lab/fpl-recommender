@@ -33,6 +33,17 @@ export default function Home() {
   const [quickData, setQuickData] = useState<QuickDataWithHistory | null>(null);
   const [fullData, setFullData] = useState<(AnalysisResult & { otherTargets?: OtherTarget[]; scoutGW?: number | null }) | null>(null);
   const recsRef = useRef<HTMLDivElement>(null);
+  const [atBottom, setAtBottom] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      const scrollBottom = window.innerHeight + window.scrollY;
+      setAtBottom(scrollBottom >= document.body.offsetHeight - 100);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   async function handleAnalyze(e: React.FormEvent) {
     e.preventDefault();
@@ -208,12 +219,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Scroll indicator after full load */}
-        {showFull && fullData && (
-          <div className="flex flex-col items-center mt-6 mb-2 animate-bounce">
-            <span className="text-emerald-400/70 text-sm font-medium mb-1">{"\u2193"} Detailed analysis & recommendations below {"\u2193"}</span>
-          </div>
-        )}
+        {/* Static scroll indicator removed — using floating arrow instead */}
 
         {/* Full Analysis Results */}
         {showFull && fullData && (
@@ -513,6 +519,19 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Floating scroll arrow */}
+      {!atBottom && phase !== "idle" && (
+        <button
+          onClick={() => window.scrollBy({ top: window.innerHeight * 0.7, behavior: "smooth" })}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce bg-emerald-600/80 hover:bg-emerald-500 backdrop-blur-sm rounded-full p-2 shadow-lg transition-all"
+          aria-label="Scroll down"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+            <path d="M12 5v14m0 0l-6-6m6 6l6-6" />
+          </svg>
+        </button>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-white/10 mt-auto">
@@ -989,7 +1008,7 @@ function RankChart({ history }: { history: RankHistoryEntry[] }) {
           </span>
         </div>
       </div>
-      <div className="overflow-x-auto relative">
+      <div className="overflow-visible relative">
         <svg ref={chartRef} viewBox={`0 0 ${width} ${height}`} className="w-full h-72">
           <defs>
             <linearGradient id="rankGrad" x1="0" y1="0" x2="0" y2="1">

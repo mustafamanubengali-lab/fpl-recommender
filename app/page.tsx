@@ -369,13 +369,13 @@ export default function Home() {
                               : "Free"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 mb-3">
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 mb-3">
                         <PlayerCard
                           label="OUT"
                           labelColor="text-red-400"
                           player={rec.playerOut}
                         />
-                        <div className="text-2xl text-slate-500">&#8594;</div>
+                        <div className="text-xl sm:text-2xl text-slate-500">{"\u2192"}</div>
                         <PlayerCard
                           label="IN"
                           labelColor="text-emerald-400"
@@ -396,7 +396,7 @@ export default function Home() {
                         ))}
                       </div>
                       {/* Fixture comparison */}
-                      <div className="mt-3 grid grid-cols-2 gap-4">
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <FixtureRow
                           label={rec.playerOut.player.web_name}
                           fixtures={rec.playerOut.upcomingFixtures}
@@ -1165,9 +1165,9 @@ function PlayerCard({
   player: import("@/lib/types").PlayerAnalysis;
 }) {
   return (
-    <div className="flex-1 text-center">
+    <div className="min-w-0 text-center">
       <div className={`${labelColor} text-xs mb-1`}>{label}</div>
-      <div className="text-white font-semibold">
+      <div className="text-white font-semibold text-sm sm:text-base truncate">
         {player.player.web_name}
         {player.isPenaltyTaker && (
           <span className="ml-1 text-xs text-yellow-400" title="Penalty taker">
@@ -1175,13 +1175,13 @@ function PlayerCard({
           </span>
         )}
       </div>
-      <div className="text-slate-400 text-xs">
-        {player.teamName} &middot; {"\u00A3"}
-        {(player.player.now_cost / 10).toFixed(1)}m &middot; Form{" "}
+      <div className="text-slate-400 text-[10px] sm:text-xs">
+        {player.teamName} {"\u00B7"} {"\u00A3"}
+        {(player.player.now_cost / 10).toFixed(1)}m {"\u00B7"} Form{" "}
         {parseFloat(player.player.form).toFixed(1)}
       </div>
-      <div className="text-slate-500 text-xs mt-1">
-        npxG {player.rollingStats.npxGPer90.toFixed(2)} &middot; xA{" "}
+      <div className="text-slate-500 text-[10px] sm:text-xs mt-1">
+        npxG {player.rollingStats.npxGPer90.toFixed(2)} {"\u00B7"} xA{" "}
         {player.rollingStats.xAPer90.toFixed(2)}
       </div>
     </div>
@@ -1200,7 +1200,7 @@ function FixtureRow({
       <div className="text-xs text-slate-500 mb-1">
         {label}&apos;s fixtures
       </div>
-      <div className="flex gap-1">
+      <div className="flex flex-wrap gap-1">
         {fixtures.slice(0, 5).map((f, k) => (
           <span
             key={k}

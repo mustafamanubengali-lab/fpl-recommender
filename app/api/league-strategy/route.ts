@@ -26,6 +26,7 @@ interface StrategyPlayer {
   totalRivals: number;
   selectedPct: string;
   fixtures: StrategyFixture[];
+  userOwns?: boolean;
 }
 
 interface StrategyResult {
@@ -236,31 +237,33 @@ export async function POST(request: NextRequest) {
             .map((r) => r.entry)
         : defendRivals.map((r) => r.entry);
 
-      // Count how many defend rivals own each player the user doesn't have
+      // Count how many defend rivals own each player (including ones user owns)
       const playerOwnership = new Map<number, number>();
       for (const rivalId of defendRivalIds) {
         const rivalPlayers = rivalPicksMap.get(rivalId);
         if (!rivalPlayers) continue;
         for (const pid of rivalPlayers) {
-          if (!userPlayerIds.has(pid)) {
-            playerOwnership.set(pid, (playerOwnership.get(pid) || 0) + 1);
-          }
+          playerOwnership.set(pid, (playerOwnership.get(pid) || 0) + 1);
         }
       }
 
-      defendSuggestions = [...playerOwnership.entries()]
+      // Prefer players user doesn't own, but include owned ones if needed
+      const allDefendCandidates = [...playerOwnership.entries()]
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
+        .slice(0, 20)
         .map(([pid, count]) => {
           const info = buildPlayerInfo(pid);
           if (!info) return null;
           info.ownedByRivals = count;
           info.totalRivals = defendRivalIds.length;
-          return info;
+          return { ...info, userOwns: userPlayerIds.has(pid) };
         })
-        .filter((p): p is StrategyPlayer => p !== null)
-        .filter((p) => p.form >= 2) // filter out truly awful players
-        .slice(0, 2);
+        .filter((p): p is StrategyPlayer & { userOwns: boolean } => p !== null && p.form >= 2);
+
+      // Prioritize players user doesn't own (gaps to cover), then popular ones user already has
+      const gaps = allDefendCandidates.filter((p) => !p.userOwns);
+      const covered = allDefendCandidates.filter((p) => p.userOwns);
+      defendSuggestions = [...gaps, ...covered].slice(0, 3);
     }
 
     const result: StrategyResult = {

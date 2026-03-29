@@ -116,7 +116,7 @@ export default function Home() {
             Enter your FPL team ID to get personalized transfer recommendations.
             Find it in the URL when you view your team on the FPL website.
           </p>
-          <form onSubmit={handleAnalyze} className="flex gap-3">
+          <form onSubmit={handleAnalyze} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               value={teamId}
@@ -595,6 +595,7 @@ interface StrategyPlayer {
   totalRivals: number;
   selectedPct: string;
   fixtures: StrategyFixture[];
+  userOwns?: boolean;
 }
 
 interface StrategyResult {
@@ -777,6 +778,11 @@ function LeagueSection({
                             )
                             .join(", ")}
                         </div>
+                        {strategy.defend.suggestions.length > 0 && strategy.defend.suggestions.every((p) => p.userOwns) && (
+                          <div className="text-xs text-emerald-400 mb-2">
+                            &#10003; You already own all the key threats — well defended!
+                          </div>
+                        )}
                         <div className="grid gap-2 sm:grid-cols-2">
                           {strategy.defend.suggestions.map((p) => (
                             <StrategyCard
@@ -840,7 +846,9 @@ function StrategyCard({
       <div className="text-xs text-slate-500 mt-1">
         {type === "attack"
           ? `${player.ownedByRivals === 0 ? "No rivals own this player" : `Only ${player.ownedByRivals} rival(s) own`} — ${player.selectedPct}% overall ownership`
-          : `Owned by ${player.ownedByRivals} of ${player.totalRivals} rival(s) — cover this threat`}
+          : player.userOwns
+            ? `Owned by ${player.ownedByRivals}/${player.totalRivals} rival(s) — you have this covered`
+            : `Owned by ${player.ownedByRivals}/${player.totalRivals} rival(s) — gap in your squad`}
       </div>
       {player.fixtures && player.fixtures.length > 0 && (
         <div className="flex gap-1 mt-2">

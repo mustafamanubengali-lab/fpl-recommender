@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FPL Recommender
 
-## Getting Started
+AI-powered Fantasy Premier League transfer recommendation engine. Analyzes your FPL team and suggests optimal transfers using XGBoost ML models trained on historical player data.
 
-First, run the development server:
+## How It Works
+
+1. Enter your FPL Team ID
+2. **Phase 1 (instant)**: Team overview, rank history, league standings
+3. **Phase 2 (10-60s)**: Deep squad analysis with position-specific ML predictions, transfer recommendations cross-referenced with expert scout picks
+
+## Tech Stack
+
+- **Next.js 16** / **React 19** / **TypeScript** - Full-stack web app
+- **Tailwind CSS 4** - Styling
+- **XGBoost** - Position-specific ML models (play probability + expected points)
+- **Python** (pandas, scikit-learn) - Model training pipeline
+
+## Setup
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.10+ (only for retraining models)
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+No `.env` file needed - the app uses only public FPL APIs.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Running
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Development
+npm run dev
 
-## Learn More
+# Production
+npm run build && npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+The app runs at `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Retraining Models (Optional)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cd scripts
+pip install -r requirements.txt
+python train.py
+```
 
-## Deploy on Vercel
+This trains XGBoost models on historical data and outputs JSON model files to `public/models/`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Team Analysis
+- Manager info, overall rank, bank balance, team value
+- Rank history chart across gameweeks
+- Mini-league standings and percentile rankings
+
+### Squad Deep Dive
+- Per-player scoring using rolling per-90 stats (last 5 games)
+- Position-specific weighting (npxG, xA, saves, xGC, defensive contribution, ICT)
+- Fixture difficulty assessment
+- Weakness identification (low form, injuries, tough fixtures, limited minutes)
+
+### Transfer Recommendations
+- Top 5 player-in/player-out pairs with net cost and reasoning
+- Cross-referenced with AllAboutFPL scout picks
+- Top 10 alternative targets outside recommendations
+
+### ML Pipeline
+- 4 position-specific model sets (GK, DEF, MID, FWD)
+- Each position has a **play model** (will they get minutes?) and **points model** (expected points if they play)
+- 20 features including rolling per-90 stats, form, fixture difficulty, penalty taker status
+- Trained on 2022-23 and 2023-24 seasons, validated on 2024-25
+
+## API Endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/quick` | POST | Fast team overview + leagues |
+| `/api/analyze` | POST | Full analysis + transfer recommendations |
+| `/api/league-strategy` | POST | League-specific strategy |
+
+## Architecture
+
+```
+User enters Team ID
+    ├─ /api/quick (2-5s) → Team overview, rank chart, leagues
+    └─ /api/analyze (10-60s, parallel)
+        ├─ Fetch all player summaries from FPL API
+        ├─ Compute rolling per-90 stats
+        ├─ Run XGBoost predictions (play probability × expected points)
+        ├─ Score players with position-specific weights
+        ├─ Generate transfer recommendations within budget
+        ├─ Cross-reference with expert scout picks
+        └─ Return analysis + recommendations
+```
+
+## Deployment
+
+Designed for **Vercel** (Next.js native hosting). FPL API responses are cached for 5 minutes to reduce load.
